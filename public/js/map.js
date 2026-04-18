@@ -1,18 +1,24 @@
-mapboxgl.accessToken = mapToken;
-const parsedCoordinates = JSON.parse(coordinates);
+const mapContainer = document.getElementById("map");
+const hasValidCoordinates = Array.isArray(coordinates) && coordinates.length === 2;
 
-const map = new mapboxgl.Map({
-    container: "map", // container ID
-    style: "mapbox://styles/mapbox/streets-v12",
-    center: parsedCoordinates, // starting position [lng, lat]. Note that lat must be set between -90 and 90
-    zoom: 9 // starting zoom
-});
+if (mapContainer && mapToken && hasValidCoordinates && typeof mapboxgl !== "undefined") {
+    mapboxgl.accessToken = mapToken;
 
-const marker = new mapboxgl.Marker({ color: "red"})
-.setLngLat(parsedCoordinates)
-.setPopup(new mapboxgl.Popup({offset: 25})
-.setHTML(
-    `<h3>${Title} </h3> <p>Exact location provided after booking</p>`
-))
-// .setMaxWidth("300px")
-.addTo(map);
+    const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: coordinates,
+        zoom: 9
+    });
+
+    new mapboxgl.Marker({ color: "red"})
+        .setLngLat(coordinates)
+        .setPopup(new mapboxgl.Popup({offset: 25})
+        .setHTML(
+            `<h3>${title}</h3> <p>Exact location provided after booking</p>`
+        ))
+        .addTo(map);
+} else if (mapContainer) {
+    mapContainer.classList.add("d-flex", "align-items-center", "justify-content-center", "text-muted");
+    mapContainer.textContent = "Map preview unavailable for this listing.";
+}

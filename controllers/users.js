@@ -12,7 +12,7 @@ module.exports.signUp = async(req, res, next) => {
     console.log(registerUser);
     req.login(registerUser, (err) => {
         if(err) {
-            return next();
+            return next(err);
         }
         req.flash("success", "Welcome to Wanderlust!");
         res.redirect("/listings");
@@ -30,13 +30,14 @@ module.exports.renderLoginForm = (req, res) => {
 module.exports.Login = async(req, res) => {
     req.flash("success","Welcome back to Wanderlust");
     let redirectUrl = res.locals.redirectUrl || "/listings";
+    delete req.session.redirectUrl;
     res.redirect(redirectUrl);
 };
 
 module.exports.Logout = (req, res, next) => {
     req.logout((err) => {
         if(err) {
-            return next();
+            return next(err);
         }
         req.flash("success", "You are logged out!");
         res.redirect("/listings");
