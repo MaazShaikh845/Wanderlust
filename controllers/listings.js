@@ -23,10 +23,26 @@ module.exports.showListing = async (req, res) => {
 };
 
 module.exports.createListing = async (req, res) => {
+    // Diagnostic Logging
+    const token = process.env.MAP_TOKEN;
+    if (!token) {
+        req.flash("error", "Mapbox Token is missing in environment variables!");
+        return res.redirect("/listings/new");
+    }
+    if (token.startsWith('"') || token.endsWith('"') || token.startsWith("'") || token.endsWith("'")) {
+        req.flash("error", "Mapbox Token contains quotes. Please remove them in Render settings.");
+        return res.redirect("/listings/new");
+    }
+
     let response = await geocodingClient.forwardGeocode({
         query: req.body.listing.location,
         limit: 1,
     }).send();
+
+    if (!response.body.features.length) {
+        req.flash("error", "Location not found. Please enter a valid location.");
+        return res.redirect("/listings/new");
+    }
 
     let url = req.file.path;
     let filename = req.file.filename;
