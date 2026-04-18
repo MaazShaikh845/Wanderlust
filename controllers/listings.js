@@ -1,7 +1,6 @@
 const Listing = require("../models/listing");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
 const getMapTokenError = () => {
     const token = process.env.MAP_TOKEN;
@@ -18,12 +17,21 @@ const getMapTokenError = () => {
 };
 
 const getGeometryFromLocation = async (location) => {
-    const response = await geocodingClient.forwardGeocode({
-        query: location,
-        limit: 1,
-    }).send();
+    const token = process.env.MAP_TOKEN;
+    if (!token) return null;
+    
+    try {
+        const geocodingClient = mbxGeocoding({ accessToken: token });
+        const response = await geocodingClient.forwardGeocode({
+            query: location,
+            limit: 1,
+        }).send();
 
-    return response.body.features[0]?.geometry || null;
+        return response.body.features[0]?.geometry || null;
+    } catch (err) {
+        console.error("Mapbox Geocoding Error:", err.message);
+        return null;
+    }
 };
 
 module.exports.index = async (req, res) => {
