@@ -1,35 +1,23 @@
 const Listing = require("../models/listing");
-const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapToken = process.env.MAP_TOKEN;
 
-const getMapTokenError = () => {
-    const token = process.env.MAP_TOKEN;
-
-    if (!token) {
-        return "Mapbox token is missing in environment variables!";
-    }
-
-    if (token.startsWith('"') || token.endsWith('"') || token.startsWith("'") || token.endsWith("'")) {
-        return "Mapbox token contains quotes. Please remove them from your environment settings.";
-    }
-
-    return null;
-};
-
+// Uses free OpenStreetMap Nominatim API — no API key or credit card required
 const getGeometryFromLocation = async (location) => {
-    const token = process.env.MAP_TOKEN;
-    if (!token) return null;
-    
     try {
-        const geocodingClient = mbxGeocoding({ accessToken: token });
-        const response = await geocodingClient.forwardGeocode({
-            query: location,
-            limit: 1,
-        }).send();
+        const encoded = encodeURIComponent(location);
+        const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
+        const response = await fetch(url, {
+            headers: { "User-Agent": "WanderlustApp/1.0" }
+        });
+        const data = await response.json();
 
-        return response.body.features[0]?.geometry || null;
+        if (!data || data.length === 0) return null;
+
+        return {
+            type: "Point",
+            coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
+        };
     } catch (err) {
-        console.error("Mapbox Geocoding Error:", err.message);
+        console.error("Nominatim Geocoding Error:", err.message);
         return null;
     }
 };
@@ -59,26 +47,20 @@ module.exports.createListing = async (req, res) => {
         return res.redirect("/listings/new");
     }
 
-    const mapTokenError = getMapTokenError();
-    if (mapTokenError) {
-        req.flash("error", mapTokenError);
-        return res.redirect("/listings/new");
-    }
-
-    const geometry = await getGeometryFromLocation(req.body.listing.location);
-    if (!geometry) {
-        req.flash("error", "Location not found. Please enter a valid location.");
-        return res.redirect("/listings/new");
-    }
-
     let url = req.file.path;
     let filename = req.file.filename;
 
-    const newListing = new Listing(req.body.listing);
-    newListing.owner = req.user._id;
-    newListing.image = {url, filename};
+    // Geocode the location using free Nominatim API
+    const geometry = await getGeometryFromLocation(req.body.listing.location);
 
-    newListing.geometry = geometry;
+    const listingData = { ...req.body.listing };
+    delete listingData.image; // prevent string image from overriding the object
+
+    const newListing = new Listing(listingData);
+    newListing.owner = req.user._id;
+    newListing.image = { url, filename };
+    // Use geometry if found, otherwise default to [0,0] so listing still saves
+    newListing.geometry = geometry || { type: "Point", coordinates: [0, 0] };
 
     let savedListing = await newListing.save();
     console.log(savedListing);
@@ -117,19 +99,9 @@ module.exports.updateListing = async (req, res) => {
     Object.assign(listing, req.body.listing);
 
     if (shouldRefreshGeometry || !listing.geometry) {
-        const mapTokenError = getMapTokenError();
-        if (mapTokenError) {
-            req.flash("error", mapTokenError);
-            return res.redirect(`/listings/${id}/edit`);
-        }
-
         const geometry = await getGeometryFromLocation(nextLocation);
-        if (!geometry) {
-            req.flash("error", "Location not found. Please enter a valid location.");
-            return res.redirect(`/listings/${id}/edit`);
-        }
-
-        listing.geometry = geometry;
+        // Only update geometry if found; otherwise keep existing or use default
+        listing.geometry = geometry || listing.geometry || { type: "Point", coordinates: [0, 0] };
     }
 
     if (typeof req.file !== "undefined") {

@@ -1,23 +1,23 @@
 const mapContainer = document.getElementById("map");
 const hasValidCoordinates = Array.isArray(coordinates) && coordinates.length === 2;
 
-if (mapContainer && mapToken && hasValidCoordinates && typeof mapboxgl !== "undefined") {
-    mapboxgl.accessToken = mapToken;
+if (mapContainer && hasValidCoordinates) {
+    // Leaflet uses [lat, lng] but GeoJSON/our coordinates are stored as [lng, lat]
+    const [lng, lat] = coordinates;
 
-    const map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v12",
-        center: coordinates,
-        zoom: 9
-    });
+    const map = L.map("map").setView([lat, lng], 9);
 
-    new mapboxgl.Marker({ color: "red"})
-        .setLngLat(coordinates)
-        .setPopup(new mapboxgl.Popup({offset: 25})
-        .setHTML(
-            `<h3>${title}</h3> <p>Exact location provided after booking</p>`
-        ))
-        .addTo(map);
+    // Free OpenStreetMap tiles — no API key required
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup(`<h3>${title}</h3><p>Exact location provided after booking</p>`)
+        .openPopup();
+
 } else if (mapContainer) {
     mapContainer.classList.add("d-flex", "align-items-center", "justify-content-center", "text-muted");
     mapContainer.textContent = "Map preview unavailable for this listing.";

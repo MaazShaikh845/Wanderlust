@@ -2,14 +2,12 @@
 <%
     const ownerName = listing.owner ? listing.owner.username : "Host unavailable";
     const hasMapData = Boolean(
-        process.env.MAP_TOKEN &&
         listing.geometry &&
         Array.isArray(listing.geometry.coordinates) &&
         listing.geometry.coordinates.length === 2
     );
 %>
 <script>
-    const mapToken = <%- JSON.stringify(hasMapData ? process.env.MAP_TOKEN : "") %>;
     const coordinates = <%- JSON.stringify(hasMapData ? listing.geometry.coordinates : null) %>;
     const title = <%- JSON.stringify(listing.title) %>;
 </script>
