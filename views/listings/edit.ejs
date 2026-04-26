@@ -18,8 +18,8 @@
 
         <% if(originalImageUrl) { %>
         <div class="mb-3" >
-            Original Listing Image <br>
-            <img src="<%= originalImageUrl %>" alt="Original listing image">
+            <label class="form-label">Original Listing Image</label><br>
+            <img src="<%= originalImageUrl %>" alt="Original listing image" class="img-fluid rounded" style="max-height: 250px; object-fit: cover;">
         </div>
         <% } %>
         
