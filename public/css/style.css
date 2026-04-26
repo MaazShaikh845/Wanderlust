@@ -107,8 +107,6 @@ body {
 /* ── Show Page ────────────────────────────────── */
 .show-img { height: 35vh; object-fit: cover; width: 100%; border-radius: 1rem; }
 .show-card {
-    padding-left: 0;
-    padding-right: 0;
     border: none !important;
 }
 .btns {

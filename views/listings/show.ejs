@@ -32,12 +32,15 @@
 
 <% if(currentUser && listing.owner && listing.owner._id.equals(currentUser._id)) { %>
     <div class="col-12 col-md-8 offset-md-2">
-        <div class="btns">
-            <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn col-6 col-md-2">Edit</a>
-        
-            <form method="post" action="/listings/<%= listing._id %>?_method=DELETE" class="col-6 col-md-2 offset-md-1">
-                <button class="btn btn-dark w-100">Delete</button>
-            </form>
+        <div class="row gx-3 gy-2 mt-2">
+            <div class="col-6 col-md-2">
+                <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn w-100">Edit</a>
+            </div>
+            <div class="col-6 col-md-2">
+                <form method="post" action="/listings/<%= listing._id %>?_method=DELETE">
+                    <button class="btn btn-dark w-100">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
 <% } %>
