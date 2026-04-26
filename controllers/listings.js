@@ -1,6 +1,6 @@
-const Listing = require("../models/listing");
+﻿const Listing = require("../models/listing");
 
-// Uses free OpenStreetMap Nominatim API — no API key or credit card required
+// Uses free OpenStreetMap Nominatim API â€” no API key or credit card required
 const getGeometryFromLocation = async (location) => {
     try {
         const encoded = encodeURIComponent(location);
@@ -23,8 +23,11 @@ const getGeometryFromLocation = async (location) => {
 };
 
 module.exports.index = async (req, res) => {
-    let allListings = await Listing.find({});
-    res.render("./listings/index.ejs", {allListings});
+    const { category } = req.query;
+    let filter = {};
+    if (category) filter.category = category;
+    let allListings = await Listing.find(filter);
+    res.render("./listings/index.ejs", { allListings, activeCategory: category || null });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -123,3 +126,4 @@ module.exports.destroyListing = async (req, res) => {
     res.redirect("/listings");
     console.log(deleteListing);
 };
+
